@@ -1,0 +1,82 @@
+---
+title: "SDK Reference: Datasets — cw.datasets"
+sidebarTitle: "Datasets"
+description: "Reference for cw.datasets.add(). Register LeRobot-format or folder datasets with Cyberwave to visualize, share, or train AI models on your robot data."
+---
+
+The `cw.datasets` namespace lets you register local robot data with the Cyberwave platform so it becomes available for model training, visualization in the dashboard, and sharing with your team. Registering a dataset does not move or duplicate your files by default — Cyberwave indexes the data in place and gives it a workspace-scoped identifier you can reference in training runs.
+
+## cw.datasets.add()
+
+Register a local dataset folder with your Cyberwave workspace.
+
+```python
+cw.datasets.add(path)
+```
+
+<ParamField path="path" type="string" required>
+  The path to the dataset directory on your local machine. The folder should contain recordings in one of the supported formats: LeRobot (the recommended default), Parquet, or MP4. Relative paths are resolved from the current working directory.
+</ParamField>
+
+## Registering a Dataset
+
+Point `cw.datasets.add()` at a folder of recordings and Cyberwave handles the rest — indexing, format detection, and thumbnail generation.
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+
+cw.datasets.add("./my-recordings")
+```
+
+After the call completes, the dataset appears in your workspace under **Datasets** in the Cyberwave dashboard, where you can preview episodes, inspect statistics, and kick off training runs.
+
+## Supported Formats
+
+Cyberwave automatically detects the format of the files inside the registered folder:
+
+| Format | Description |
+|---|---|
+| **LeRobot** | The recommended format. Structured episodes with synchronized observations, actions, and metadata. Produced natively by `cyberwave record` and compatible with the HuggingFace LeRobot library. |
+| **Parquet** | Columnar tabular data — useful for sensor logs, joint trajectories, and structured telemetry exported from other tools. |
+| **MP4** | Raw video recordings. Cyberwave extracts frames and optionally runs automatic annotation depending on your workspace settings. |
+
+<Note>
+  If your folder contains a mix of formats, Cyberwave indexes each file according to its own type. You can filter by format on the dataset detail page.
+</Note>
+
+## What You Can Do After Registering
+
+Once a dataset is registered, you can:
+
+- **Train a model** — select the dataset as a training source in a new training run, either from the dashboard or via the training API.
+- **Visualize episodes** — replay recordings with synchronized video and telemetry in the dashboard.
+- **Share with your team** — grant workspace members access to the dataset without copying any files.
+- **Export** — download the dataset in its original format or convert it to LeRobot format for use with external tools.
+- **Delete** — remove the registration at any time; your local files are never touched.
+
+<Tip>
+  There is no vendor lock-in. Your data stays where you put it. Deleting a dataset from Cyberwave removes the index entry only — the source files on your machine remain intact.
+</Tip>
+
+## Privacy and GDPR
+
+Cyberwave includes built-in anonymization tooling for datasets that contain footage of people or vehicles. When enabled, the platform automatically detects and blurs:
+
+- **Faces** — all detected human faces in video frames
+- **License plates** — vehicle registration plates
+- **Detected classes** — any object class you specify (e.g., `"person"`, `"bag"`)
+
+Anonymization runs as a post-processing step after registration and produces a separate anonymized copy of your dataset, leaving the original untouched.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Collect Data" icon="circle-dot" href="/guides/collect-data">
+    Record robot demonstrations directly from the Cyberwave SDK or CLI.
+  </Card>
+  <Card title="Models and Datasets" icon="brain" href="/concepts/models-datasets">
+    Understand how datasets and models connect in the Cyberwave training pipeline.
+  </Card>
+</CardGroup>

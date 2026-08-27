@@ -1,47 +1,148 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with Cyberwave in 5 Minutes"
+sidebarTitle: "Quickstart"
+description: "Install the Cyberwave Python SDK, set up authentication, and control your first robot or digital twin in under 5 minutes."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+Cyberwave lets you connect physical robots and sensors to the cloud through digital twins, then control them — or simulate them — with just a few lines of Python. By the end of this page you will have the SDK installed, your API key configured, and your first digital twin responding to commands.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+## Install the SDK
 
-## Prerequisites
+The Cyberwave SDK is distributed as a standard Python package. Run the following command in your terminal to install it:
 
-Before you begin, you must have:
+```bash
+pip install cyberwave
+```
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+Once the installation finishes, verify the CLI is available:
 
-## Get started
+```bash
+cyberwave --help
+```
+
+<Note>
+  This guide covers software setup only. If you are connecting a physical robot or sensor, follow the [Hardware Installation Guide](https://docs.cyberwave.com/hardware) to pair your device before sending live commands.
+</Note>
+
+## Authenticate
+
+Every request made by the SDK requires a valid API token. If you do not have one yet, follow the [Authentication guide](/authentication) to create a token in the Cyberwave dashboard.
+
+Once you have your token, export it as an environment variable. The SDK reads `CYBERWAVE_API_KEY` automatically — no extra configuration needed:
+
+```bash
+export CYBERWAVE_API_KEY="cw_your_token_here"
+```
+
+<Tip>
+  Add this line to your shell profile (e.g. `~/.zshrc` or `~/.bashrc`) so the variable is always available in new terminal sessions.
+</Tip>
+
+## Control Your First Digital Twin
+
+With the SDK installed and your API key set, you are ready to connect to a robot. The `cw.twin()` method returns a digital twin for any device in your environment — whether that device is a real robot or a simulation:
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+  <Step title="Import and initialise the client">
+    Create a `Cyberwave` client instance. It reads `CYBERWAVE_API_KEY` from your environment automatically, so no arguments are required:
 
-    ```bash
-    npm install your-package
+    ```python
+    from cyberwave import Cyberwave
+
+    cw = Cyberwave()  # reads CYBERWAVE_API_KEY from environment
     ```
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
 
-    ```bash
-    your-cli init
+  <Step title="Connect to a twin and send commands">
+    Call `cw.twin()` with the device identifier to get a live handle, then call methods on it. The example below demonstrates several supported device types:
+
+    ```python
+    # Drone — takes off immediately
+    drone = cw.twin("dji/dji-mini-4-pro")
+    drone.takeoff()
+
+    # Quadruped robot dog — moves forward one step
+    robot_dog = cw.twin("unitree/go2")
+    robot_dog.move_forward()
+
+    # Camera — begins streaming video
+    camera = cw.twin("camera")
+    camera.start_streaming()
+
+    # Robot arm — moves joint 1 to 30 degrees
+    arm = cw.twin("the-robot-studio/so101")
+    arm.set_joint("1", 30)
     ```
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
 
-    ```bash
-    your-cli start
-    ```
+  <Step title="Observe the result">
+    Depending on your setup you will see one of the following outcomes:
+
+    - **Simulation** — the digital twin appears in the Cyberwave dashboard and executes the commanded motion in the 3-D simulator.
+    - **Live hardware** — the paired physical robot executes the commands in the real world. Make sure your device is paired before running live commands (see the [Hardware Installation Guide](https://docs.cyberwave.com/hardware)).
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## Develop with Simulation First
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+You do not need physical hardware to build and test your automations. Switch the active environment to simulation so that every twin command runs in a safe virtual world, then flip to live when you are ready to deploy:
+
+<CodeGroup>
+  ```python Simulation mode
+  from cyberwave import Cyberwave
+
+  cw = Cyberwave()
+  cw.affect("simulation")  # all twin commands run in the simulator
+
+  drone = cw.twin("dji/dji-mini-4-pro")
+  drone.takeoff()
+  ```
+
+  ```python Live mode
+  from cyberwave import Cyberwave
+
+  cw = Cyberwave()
+  cw.affect("live")  # all twin commands run on real hardware
+
+  drone = cw.twin("dji/dji-mini-4-pro")
+  drone.takeoff()
+  ```
+</CodeGroup>
+
+<Note>
+  The rest of your code stays exactly the same regardless of mode. `cw.affect()` is the only line you need to change when moving between simulation and production.
+</Note>
+
+## Working Across Multiple Environments
+
+If your account has more than one environment (for example, a staging environment and a production environment), tell the SDK which one to target. You can do this with an environment variable or directly in code:
+
+<CodeGroup>
+  ```bash Environment variable
+  export CYBERWAVE_ENVIRONMENT_ID="env_your_environment_id"
+  ```
+
+  ```python Pass in code
+  from cyberwave import Cyberwave
+
+  cw = Cyberwave()
+  arm = cw.twin("the-robot-studio/so101", environment_id="env_your_environment_id")
+  ```
+</CodeGroup>
+
+<Tip>
+  Using `CYBERWAVE_ENVIRONMENT_ID` keeps your code environment-agnostic and makes it easy to switch targets without touching source files — ideal for CI/CD pipelines.
 </Tip>
+
+## Next Steps
+
+You have installed the SDK, authenticated, and sent your first commands to a digital twin. Explore the topics below to go further:
+
+<CardGroup cols={2}>
+  <Card title="Digital Twins" icon="robot" href="/concepts/digital-twins">
+    Learn how Cyberwave models physical devices as digital twins and what you can do with them.
+  </Card>
+  <Card title="Connect Hardware" icon="plug" href="/guides/connect-hardware">
+    Pair a real robot or sensor with your Cyberwave environment so live commands reach the physical device.
+  </Card>
+</CardGroup>

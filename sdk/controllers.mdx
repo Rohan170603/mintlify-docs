@@ -1,0 +1,86 @@
+---
+title: "SDK Reference: Controllers — twin.use_controller()"
+sidebarTitle: "Controllers"
+description: "Reference for twin.use_controller(). Switch between keyboard, code, and AI model controllers at runtime without interrupting telemetry or recording."
+---
+
+A controller determines what drives a twin's actions at any given moment — it could be a human operator at a keyboard, your own Python logic, or an AI model running inference on a sensor stream. You can switch controllers on a live twin at any time without interrupting telemetry collection or any active recordings.
+
+## twin.use_controller()
+
+Assign a controller to the twin. The switch takes effect immediately; the twin stops accepting commands from the previous controller and starts accepting them from the new one.
+
+```python
+twin.use_controller(controller_name)
+```
+
+<ParamField path="controller_name" type="string" required>
+  The name of the controller to assign. Use `"keyboard"` to hand control to a human operator via the Cyberwave dashboard, or pass a model name — either from the Cyberwave catalog or one of your own uploaded checkpoints — to assign an AI controller.
+</ParamField>
+
+## Built-in Controllers
+
+### keyboard
+
+Transfers control to a human operator through the keyboard and gamepad interface in the Cyberwave dashboard. Any connected user with edit access to the workspace can take over immediately.
+
+```python
+robot = cw.twin("unitree/go2")
+robot.use_controller("keyboard")
+```
+
+Use `"keyboard"` when you need a human in the loop — for example, during initial robot bring-up, when diagnosing unexpected behavior, or in human-robot collaboration workflows.
+
+### AI Model Controller
+
+Pass any model name from the Cyberwave catalog or a checkpoint you have uploaded to assign an AI controller. The model receives the twin's live sensor stream and outputs actions at each inference step.
+
+```python
+robot = cw.twin("unitree/go2")
+robot.use_controller("my-vla-policy")
+```
+
+The model name must match a catalog entry or an uploaded checkpoint visible in your workspace. See [AI Models](/sdk/models) for how to load and manage models.
+
+## Switching Controllers at Runtime
+
+You can switch between controllers as many times as you need during a session. Telemetry and recordings continue uninterrupted across every switch — no data is lost during the handover.
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+robot = cw.twin("unitree/go2")
+
+# Start with a human operator for initial positioning
+robot.use_controller("keyboard")
+
+# Hand off to an AI model once the robot is in position
+robot.use_controller("my-vla-policy")
+
+# Reclaim manual control at any time
+robot.use_controller("keyboard")
+```
+
+<Note>
+  Switching controllers does not pause the twin, reset its state, or drop the sensor stream. The handover is designed to be seamless for continuous operation pipelines.
+</Note>
+
+## Switching from the Dashboard
+
+You do not need to write code to change a controller. From any twin's detail page in the Cyberwave dashboard, open the **Controller** panel and select a new controller from the dropdown. The change takes effect immediately and is reflected in any active SDK session.
+
+<Tip>
+  If you assign a controller via the dashboard while an SDK session is running, the SDK twin object will reflect the new controller on the next status poll. You can also listen for controller-change events through the telemetry stream.
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Controllers Concept Guide" icon="book" href="/concepts/controllers">
+    Understand the controller lifecycle, priority rules, and how to build custom controllers.
+  </Card>
+  <Card title="AI Models" icon="brain" href="/sdk/models">
+    Load catalog or custom models to use as AI controllers.
+  </Card>
+</CardGroup>

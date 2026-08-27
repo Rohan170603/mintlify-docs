@@ -1,0 +1,131 @@
+---
+title: "Supported Robots and Hardware in Cyberwave"
+sidebarTitle: "Supported Robots"
+description: "Cyberwave supports 90+ robots and sensors including DJI drones, Unitree robot dogs, robotic arms, and cameras — all controllable via a single SDK."
+---
+
+Cyberwave connects you to more than 90 robots and sensors through a single, unified interface. Whether you're flying a DJI drone, walking a Unitree robot dog, or controlling a robotic arm, every device follows the same pattern: call `cw.twin(robot_id)` with the robot's twin ID and you're ready to send commands, stream data, and build automations.
+
+## Twin ID Format
+
+Every robot in the Cyberwave catalog is identified by a twin ID in the format `"manufacturer/model"`. You pass this ID to `cw.twin()` to create a digital twin of the physical device. The twin gives you full programmatic control over the robot regardless of whether it's live on a network or running in simulation.
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+
+drone = cw.twin("dji/dji-mini-4-pro")
+dog   = cw.twin("unitree/go2")
+arm   = cw.twin("the-robot-studio/so101")
+```
+
+<Note>
+  Each robot type exposes its own set of methods on the twin object. Drones have `.takeoff()` and `.land()`; robotic arms have `.set_joint()`; robot dogs have locomotion controls. The twin ID is the only thing that changes — the rest of your SDK code stays the same.
+</Note>
+
+## Supported Hardware Categories
+
+### Drones
+
+Drone twins support aerial commands including takeoff, landing, waypoint navigation, and live video streaming.
+
+| Robot | Twin ID | Notes |
+|---|---|---|
+| DJI Mini 4 Pro | `dji/dji-mini-4-pro` | Consumer/prosumer drone with 4K camera |
+| DJI Mini 3 Pro | `dji/dji-mini-3-pro` | Lightweight with obstacle sensing |
+| DJI Air 3 | `dji/air-3` | Mid-range with dual-camera system |
+| DJI Mavic 3 Pro | `dji/mavic-3-pro` | Pro-grade triple-lens aerial platform |
+| DJI Agras T50 | `dji/agras-t50` | Agricultural spraying drone |
+
+**Common methods:** `.takeoff()`, `.land()`, `.go_to(lat, lon, alt)`, `.stream_video()`, `.get_telemetry()`
+
+### Robot Dogs
+
+Quadruped twins expose locomotion primitives, joint control, and onboard sensor feeds.
+
+| Robot | Twin ID | Notes |
+|---|---|---|
+| Unitree Go2 | `unitree/go2` | Agile consumer quadruped with LiDAR |
+| Unitree B2 | `unitree/b2` | Industrial-grade quadruped |
+| Unitree H1 | `unitree/h1` | Full-size humanoid robot |
+
+**Common methods:** `.walk(speed, direction)`, `.stand()`, `.sit()`, `.get_joint_state()`, `.stream_lidar()`
+
+### Robotic Arms
+
+Arm twins give you joint-level and end-effector control, suitable for manipulation tasks and imitation learning pipelines.
+
+| Robot | Twin ID | Notes |
+|---|---|---|
+| The Robot Studio SO101 | `the-robot-studio/so101` | Low-cost 6-DOF arm, popular for data collection |
+| The Robot Studio SO100 | `the-robot-studio/so100` | Predecessor to the SO101 |
+| Trossen WidowX 250 | `trossen/widowx-250` | Research-grade 6-DOF arm |
+| Trossen ViperX 300 | `trossen/viperx-300` | Longer reach research arm |
+| Franka Panda | `franka/panda` | High-precision collaborative arm |
+| Universal Robots UR5e | `universal-robots/ur5e` | Industrial collaborative arm |
+
+**Common methods:** `.set_joint(index, angle)`, `.move_to(x, y, z)`, `.gripper(state)`, `.get_pose()`
+
+### Cameras & Sensors
+
+Generic sensor twins let you stream video, capture frames, and feed data into your ML pipelines without writing device-specific drivers.
+
+| Device | Twin ID | Notes |
+|---|---|---|
+| Generic camera | `"camera"` | Works with any USB or IP camera |
+| Intel RealSense D435 | `intel/realsense-d435` | RGB-D depth camera |
+| ZED 2i | `stereolabs/zed-2i` | Stereo camera with spatial AI |
+| Velodyne VLP-16 | `velodyne/vlp-16` | 16-channel LiDAR |
+
+**Common methods:** `.capture_frame()`, `.stream()`, `.get_depth()` *(depth cameras only)*
+
+## Working with Multiple Robots
+
+You can instantiate as many twins as you need within a single session. Cyberwave handles connection management and multiplexing automatically.
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+
+# Connect to three different robot types at once
+drone = cw.twin("dji/dji-mini-4-pro")
+dog   = cw.twin("unitree/go2")
+arm   = cw.twin("the-robot-studio/so101")
+
+# Control them independently or in coordination
+drone.takeoff()
+dog.walk(speed=0.5, direction="forward")
+arm.set_joint(0, 90)
+```
+
+## Robot-Specific Methods
+
+While `cw.twin()` is universal, the methods available on a twin depend on its hardware category. Calling a method that doesn't apply to a given robot (for example, calling `.takeoff()` on a robotic arm) raises a `CyberwaveMethodNotSupported` error with a clear message.
+
+<Tip>
+  Check the full method reference for any robot by calling `help(twin)` in a Python session, or browsing the hardware catalog linked below.
+</Tip>
+
+## Full Hardware Catalog
+
+The table above covers popular models, but Cyberwave supports 90+ devices in total. For the complete, up-to-date list including newly added hardware, visit:
+
+**[docs.cyberwave.com/hardware](https://docs.cyberwave.com/hardware)**
+
+The catalog includes driver version requirements, known limitations, and community-contributed examples for each device.
+
+## Test Before You Buy
+
+You don't need physical hardware to start building. Every robot in the catalog can be instantiated as a simulation twin in the Cyberwave Playground directly in your browser, or in a high-fidelity MuJoCo environment for training and evaluation.
+
+<Tip>
+  Use the Playground to prototype your automation logic against a new robot type before purchasing the hardware. You can validate command sequences, sensor integrations, and ML inference pipelines entirely in simulation.
+</Tip>
+
+## Next Steps
+
+- [Quickstart](/quickstart) — connect your first robot and send your first command in under five minutes
+- [Connect Hardware](/guides/connect-hardware) — pair a physical device with your Cyberwave environment
+- [Full Hardware Catalog](https://docs.cyberwave.com/hardware) — browse every supported robot and sensor

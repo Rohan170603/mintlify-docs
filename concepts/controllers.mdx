@@ -1,0 +1,142 @@
+---
+title: "Robot Controllers: Human, Code, and AI"
+sidebarTitle: "Controllers"
+description: "Cyberwave controllers define what drives your twin. Switch between human keyboard input, your Python code, and AI models at any time during a session."
+---
+
+A controller is whatever is currently driving a twin. Cyberwave lets you swap between three fundamentally different styles of control — a human at a keyboard, your own Python code, and a trained AI model — without stopping the session or losing any telemetry. The same twin, the same recording, multiple controllers.
+
+## The Three Controller Types
+
+<CardGroup cols={3}>
+  <Card title="Human" icon="keyboard">
+    Live keyboard or gamepad input from the Cyberwave dashboard. Ideal for demos, manual recovery, and collecting imitation learning data.
+  </Card>
+  <Card title="Code" icon="code">
+    Your Python script drives the robot through the SDK. Full programmatic control with access to all telemetry and sensor data.
+  </Card>
+  <Card title="AI" icon="brain">
+    A trained model — from the Cyberwave catalog or your own checkpoint — takes over. Runs on edge or cloud inference.
+  </Card>
+</CardGroup>
+
+### Human Controllers
+
+A human controller lets you take over any twin from the Cyberwave dashboard using your keyboard or a connected gamepad. The robot responds in real time to your inputs, and all movement is still recorded as part of the session.
+
+Human control is especially useful for:
+
+- **Demos** — show off your robot's capabilities interactively without writing a script
+- **Recovery** — intervene safely when automated code behaves unexpectedly
+- **Data collection** — drive the robot manually to capture high-quality demonstration data for imitation learning
+
+### Code Controllers
+
+A code controller means your Python script is the driver. You send commands through the SDK, read back telemetry, and implement whatever logic your application requires.
+
+```python
+import cyberwave as cw
+
+robot = cw.twin("unitree/go2")
+
+# Move forward at 0.5 m/s for 3 seconds
+robot.move(vx=0.5, vy=0.0, duration=3.0)
+
+# Read current position
+pose = robot.telemetry.pose
+print(pose)
+```
+
+Code control gives you the most flexibility: closed-loop feedback, conditional logic, multi-robot coordination, and direct integration with any Python library.
+
+### AI Controllers
+
+An AI controller hands off driving to a trained model. The model receives the same sensor inputs and produces the same commands as a code controller — you just point to a model identifier instead of writing motion logic yourself.
+
+Cyberwave supports models from the built-in catalog (100+ models) and your own registered checkpoints. The model runs wherever you direct it: on an edge device co-located with the robot, or in the Cyberwave cloud.
+
+## Switching Controllers
+
+### From Python
+
+Call `robot.use_controller()` with the name of the controller you want to activate. The switch takes effect immediately; the session continues without interruption.
+
+```python
+import cyberwave as cw
+
+robot = cw.twin("unitree/go2")
+
+# Start with programmatic control
+robot.move(vx=0.3, duration=2.0)
+
+# Hand off to a human operator at the dashboard
+robot.use_controller("keyboard")
+
+# Later, let an AI model take over
+robot.use_controller("my-vla-policy")
+
+# Return to code control
+robot.use_controller("code")
+```
+
+<Note>
+  When you call `robot.use_controller("keyboard")`, the dashboard immediately shows a live control panel for that twin. The human operator must be watching the dashboard tab for the takeover to be effective.
+</Note>
+
+### From the Dashboard
+
+Open the twin's page in the Cyberwave dashboard and click **Controller** in the top bar. A dropdown lists all available options — built-in human modes, any deployed AI models, and the active code session. Select one to switch instantly.
+
+## Continuity Across Switches
+
+Cyberwave records telemetry, video, and sensor data throughout the entire session regardless of which controller is active. A session that moves through human → AI → code leaves a single continuous recording you can replay, export, or use as a training dataset.
+
+```python
+import cyberwave as cw
+
+robot = cw.twin("spot/spot")
+
+# Phase 1: human demonstrates the task
+robot.use_controller("keyboard")
+robot.record.start(label="human-demo")
+
+# Phase 2: AI model attempts the same task
+robot.use_controller("spot-nav-v2")
+
+# Phase 3: code validates the outcome
+robot.use_controller("code")
+result = robot.telemetry.position
+robot.record.stop()
+```
+
+<Tip>
+  Labelling recordings by phase makes it easy to slice them later when building training datasets. Pass a `label` argument to `robot.record.start()` before each controller switch.
+</Tip>
+
+## A Typical Workflow
+
+<Steps>
+  <Step title="Bootstrap with human control">
+    Take over the twin from the dashboard to verify the robot is operational and positioned correctly.
+  </Step>
+  <Step title="Collect demonstration data">
+    Drive the robot manually through the target task. Cyberwave records every move automatically.
+  </Step>
+  <Step title="Hand off to an AI model">
+    Switch to a VLA or navigation model from the catalog to automate the task.
+  </Step>
+  <Step title="Refine with code">
+    Switch to code control to add conditional logic, error handling, or integration with external systems.
+  </Step>
+</Steps>
+
+---
+
+<CardGroup cols={2}>
+  <Card title="SDK: Controller Methods" icon="code" href="/sdk/controllers">
+    Full reference for `use_controller()`, listing available controller IDs and options.
+  </Card>
+  <Card title="Models & Datasets" icon="brain" href="/concepts/models-datasets">
+    Learn how to load catalog models and register your own checkpoints for use as AI controllers.
+  </Card>
+</CardGroup>

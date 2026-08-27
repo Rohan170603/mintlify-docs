@@ -1,0 +1,71 @@
+---
+title: "Cyberwave: The Robotics Platform for AI Builders"
+sidebarTitle: "Introduction"
+description: "Cyberwave connects 90+ robots and sensors through a unified Python SDK and digital twins, letting you build, test, and deploy AI automations for the physical world."
+---
+
+Cyberwave is the fastest way to make the physical world programmable. Connect any robot or sensor, build AI-powered automations, train machine learning models, and deploy them to the edge or cloud — all through a single unified SDK and dashboard.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Install the SDK and control your first robot in minutes
+  </Card>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Get your API token and authenticate your first request
+  </Card>
+  <Card title="Digital Twins" icon="cubes" href="/concepts/digital-twins">
+    Understand Cyberwave's core building block
+  </Card>
+  <Card title="SDK Reference" icon="code" href="/sdk/overview">
+    Explore every method in the Python SDK
+  </Card>
+</CardGroup>
+
+## What You Can Build
+
+Cyberwave is designed for developers and AI builders who need to move fast without getting stuck in robotic infrastructure:
+
+- **Connect any robot** — 90+ supported robots from DJI drones to Unitree robot dogs, all using the same `cw.twin()` call
+- **Test safely in simulation** — run your code against a virtual twin in the browser (Playground) or in full-fidelity MuJoCo physics before touching real hardware
+- **Swap controllers at runtime** — hand off between human keyboard control, your own Python code, and AI model controllers without stopping a session
+- **Use AI out of the box** — drop any of 100+ catalog models (vision, VLA, pose, segmentation) onto a twin with a single line of code
+- **Collect and train** — every twin is a data source; episodes go straight into training pipelines in open formats (LeRobot, parquet)
+
+## How It Works
+
+<Steps>
+  <Step title="Create an account">
+    [Sign up at cyberwave.com](https://cyberwave.com/register) and generate an API token from **Profile → API Tokens**.
+  </Step>
+  <Step title="Install the SDK">
+    ```bash
+    pip install cyberwave
+    ```
+  </Step>
+  <Step title="Connect to a twin">
+    ```python
+    from cyberwave import Cyberwave
+
+    cw = Cyberwave()  # reads CYBERWAVE_API_KEY from your environment
+    drone = cw.twin("dji/dji-mini-4-pro")
+    drone.takeoff()
+    ```
+  </Step>
+  <Step title="Go from simulation to real hardware">
+    Test in the Playground simulation, then pair your physical robot with `cyberwave pair` and flip to live mode — same code, same SDK.
+  </Step>
+</Steps>
+
+## Explore the Docs
+
+<CardGroup cols={3}>
+  <Card title="Core Concepts" icon="book-open" href="/concepts/digital-twins">
+    Digital twins, controllers, simulations, and datasets explained
+  </Card>
+  <Card title="Guides" icon="map" href="/guides/connect-hardware">
+    Step-by-step walkthroughs for common workflows
+  </Card>
+  <Card title="Community" icon="discord" href="/resources/community">
+    Join the Discord, contribute on GitHub, and explore projects
+  </Card>
+</CardGroup>

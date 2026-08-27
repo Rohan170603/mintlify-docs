@@ -1,0 +1,99 @@
+---
+title: "Train and Deploy AI Models on Your Robots"
+sidebarTitle: "Train & Deploy"
+description: "Fine-tune VLA or RL models on your Cyberwave datasets, evaluate in simulation, and deploy back to your robot twin — all from a single platform."
+---
+
+Cyberwave closes the full loop from raw data to deployed intelligence. You collect episodes from your robot, register them as a dataset, fine-tune a model on Cyberwave's cloud training infrastructure, evaluate it safely in simulation, and then push it back to the same twin that generated the data — without ever leaving the platform.
+
+## Load a Model
+
+### Use a Catalog Model
+
+Cyberwave ships with a growing catalog of pre-trained models ready to use with zero additional training. Load one by name:
+
+```python
+model = cw.models.load("yolov8n")
+```
+
+Catalog models are versioned and hosted on Cyberwave's inference infrastructure. They work identically on edge devices and cloud endpoints.
+
+### Use Your Own Checkpoint
+
+If you have trained or fine-tuned a model through Cyberwave (or uploaded an external checkpoint), load it by its registered name:
+
+```python
+my_model = cw.models.load("my-vla-v3")
+```
+
+The API is the same regardless of where the model came from. Your application code does not need to change when you swap a catalog model for a custom one.
+
+## Training Flow
+
+<Steps>
+  <Step title="Collect episodes">
+    Run your robot — in simulation or live — and record interactions as labelled episodes. See [Collect Data](/guides/collect-data) for the full recording workflow.
+  </Step>
+
+  <Step title="Register your dataset">
+    Point the SDK at your episodes directory. Cyberwave indexes the data and makes it available to the training pipeline.
+
+    ```python
+    cw.datasets.add("./episodes")
+    ```
+  </Step>
+
+  <Step title="Fine-tune on Cyberwave cloud">
+    Launch a training job from the dashboard or the SDK. Cyberwave provisions GPU compute, tracks experiments, and stores checkpoints automatically. You can also bring open-source model weights (LeRobot, Hugging Face) as a starting point.
+  </Step>
+
+  <Step title="Evaluate in simulation">
+    Before touching real hardware, run your freshly trained model inside the MuJoCo simulation environment. Use the same twin and task definition you used during data collection.
+
+    ```python
+    cw.affect("simulation")
+    ```
+
+    Watch the rollouts in the dashboard and iterate on training until you are satisfied with the behaviour.
+  </Step>
+
+  <Step title="Deploy to your live robot">
+    Switch the twin to live mode and assign your model as the active controller.
+
+    ```python
+    cw.affect("live")
+    robot.use_controller("my-vla-v3")
+    ```
+
+    The robot will now execute actions produced by your model in real time.
+  </Step>
+</Steps>
+
+## Edge vs. Cloud Inference
+
+Cyberwave exposes a single model API regardless of where inference actually runs. Low-latency perception tasks (object detection, pose estimation) are best deployed to the edge device sitting next to your robot. Higher-level planning models that require more compute can run in the cloud and receive observations over the network.
+
+<Note>
+  You choose where a model runs at deployment time — not at training time. Switch inference targets from the dashboard without rewriting any application code.
+</Note>
+
+## Going Deeper
+
+For a step-by-step walkthrough of training a voice-controlled pick-and-place policy on the SO101 arm, follow the [fine-tuning tutorial](https://docs.cyberwave.com/tutorials/so101-voice-pick-and-place).
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Collect Data" icon="database" href="/guides/collect-data">
+    Record and manage episodes to build your training dataset.
+  </Card>
+  <Card title="Models & Datasets Concepts" icon="book" href="/concepts/models-datasets">
+    Learn how Cyberwave structures checkpoints, catalogs, and datasets.
+  </Card>
+  <Card title="SDK: Models" icon="code" href="/sdk/models">
+    Full SDK reference for loading, running, and managing models.
+  </Card>
+  <Card title="Build an AI Workflow" icon="diagram-project" href="/guides/build-ai-workflow">
+    Put it all together in a complete end-to-end automation pipeline.
+  </Card>
+</CardGroup>

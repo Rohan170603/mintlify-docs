@@ -1,0 +1,178 @@
+---
+title: "Cyberwave FAQ and Troubleshooting Guide"
+sidebarTitle: "FAQ"
+description: "Answers to common Cyberwave questions: authentication errors, simulation setup, hardware pairing, model deployment, and data export."
+---
+
+If you're hitting a wall, you're probably not the first. This page collects the questions the Cyberwave team hears most often — from first-time setup to production deployments. Browse by category or use your browser's search to jump straight to what you need. For anything not covered here, the fastest path to an answer is the [Cyberwave Discord](https://discord.gg/dfGhNrawyF).
+
+---
+
+## Authentication & Setup
+
+<AccordionGroup>
+  <Accordion title="How do I get an API key?">
+    Sign up for a free account at [cyberwave.com/register](https://cyberwave.com/register). Once you're logged in, go to **Profile → API Tokens** and click **Create Token**. Give your token a descriptive name (for example, `dev-laptop` or `ci-pipeline`), copy it immediately — it won't be shown again — and store it somewhere safe like a password manager or a secrets manager in your CI environment.
+
+    Set the key as an environment variable so the SDK picks it up automatically:
+
+    ```bash
+    export CYBERWAVE_API_KEY="your-api-key-here"
+    ```
+
+    You can also pass it directly when instantiating the SDK, though the environment variable approach is recommended for anything beyond quick local tests.
+  </Accordion>
+
+  <Accordion title="I'm getting an authentication error. What should I check?">
+    Authentication errors almost always come down to one of three things:
+
+    1. **The environment variable isn't set.** Run `echo $CYBERWAVE_API_KEY` in your terminal. If it's empty, set it with `export CYBERWAVE_API_KEY="your-key"` and try again.
+    2. **The key has expired or been revoked.** Go to **Profile → API Tokens** in the dashboard and confirm the key is still active. If it's been revoked, generate a new one.
+    3. **You're using a key from the wrong environment.** If you have both a staging and production account, make sure the key matches the environment you're targeting.
+
+    For a full walkthrough of authentication options including short-lived tokens and service accounts, see the [Authentication guide](/authentication).
+  </Accordion>
+
+  <Accordion title="How do I work with multiple environments?">
+    Cyberwave supports multiple isolated environments — useful for separating development, staging, and production. You can target a specific environment in two ways:
+
+    **Via environment variable:**
+    ```bash
+    export CYBERWAVE_ENVIRONMENT_ID="your-environment-id"
+    ```
+
+    **Via the SDK directly:**
+    ```python
+    from cyberwave import Cyberwave
+
+    cw = Cyberwave(environment_id="your-environment-id")
+    ```
+
+    Your environment IDs are listed in the dashboard under **Settings → Environments**. Each environment has its own set of twins, datasets, and deployed models, so data and commands don't bleed across boundaries.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Robots & Hardware
+
+<AccordionGroup>
+  <Accordion title="My robot isn't responding to commands. What should I check?">
+    Start with these steps in order:
+
+    1. **Check your affect mode.** If `cw.affect()` is set to `"simulation"`, your commands are going to a sim twin, not the physical robot. Switch to live mode with `cw.affect("live")`.
+    2. **Verify the robot is paired.** Physical robots must be registered with your Cyberwave environment before they accept commands. Run `cyberwave pair` in your terminal and follow the prompts to connect the device.
+    3. **Check connectivity.** The robot and the machine running your code both need internet access. Check that neither is behind a firewall that blocks Cyberwave's network.
+    4. **Inspect the twin status.** Call `twin.status()` to get the current connection state and any hardware-side error codes.
+
+    If you've worked through all of these and the robot still isn't responding, post in the [#hardware-help](https://discord.gg/dfGhNrawyF) channel on Discord with your twin ID and the output of `twin.status()`.
+
+    See the [Connect Hardware guide](/guides/connect-hardware) for a full pairing walkthrough.
+  </Accordion>
+
+  <Accordion title="Does Cyberwave support my robot?">
+    Cyberwave supports 90+ robots and sensors across drones, quadrupeds, robotic arms, and cameras. Check the full catalog in two places:
+
+    - [Supported Robots](/resources/supported-robots) — organized by category with twin IDs and common methods
+    - [docs.cyberwave.com/hardware](https://docs.cyberwave.com/hardware) — the live catalog including newly added devices
+
+    If your robot isn't listed, open a GitHub issue in the [cyberwave-os](https://github.com/cyberwave-os) org — drivers are community-contributed and new ones land regularly. You can also ask in Discord to find out if support is already in progress.
+  </Accordion>
+
+  <Accordion title="Do I need to be physically near my robot to control it?">
+    No. Cyberwave is a cloud-based platform, so commands travel from your computer (or from any cloud environment running your code) to the robot via Cyberwave's network. You can control a robot on the other side of the world from a laptop in a coffee shop, or trigger commands from a scheduled cloud job with no human in the loop at all.
+
+    The only requirement is that the robot has an active internet connection and is registered with your Cyberwave environment. Latency depends on network conditions between your code, Cyberwave's infrastructure, and the robot's location, so for latency-sensitive applications consider deploying your inference logic to the edge using Cyberwave's edge deployment tools.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Simulation
+
+<AccordionGroup>
+  <Accordion title="What's the difference between the Playground and MuJoCo simulation?">
+    Cyberwave offers two simulation modes for different stages of your workflow:
+
+    **Playground** runs directly in your browser. It uses a lightweight physics engine designed for quick iteration — you can prototype command sequences, test sensor integrations, and validate automation logic in seconds without installing anything extra. It's the right choice for early-stage development and demos.
+
+    **MuJoCo** is a full-fidelity physics simulation you run locally or in a cloud container. It models contact dynamics, joint torques, and sensor noise accurately enough for reinforcement learning training and rigorous pre-deployment evaluation. If you're training a policy that needs to transfer to a physical robot, MuJoCo is where that work happens.
+
+    A good rule of thumb: use the Playground to check your logic quickly, then graduate to MuJoCo when you're ready to train or do serious evaluation.
+  </Accordion>
+
+  <Accordion title="How do I switch between simulation and live mode?">
+    Use `cw.affect()` to toggle at any point in your code:
+
+    ```python
+    cw.affect("simulation")  # commands go to the sim twin
+    cw.affect("live")        # commands go to the physical robot
+    ```
+
+    You can also switch modes from the Cyberwave dashboard by clicking **Simulate** or **Go Live** on any environment page — useful if you want to flip modes without changing code.
+
+    <Note>
+      Switching to live mode while a physical robot is in motion does not interrupt its current action. Commands you send *after* the switch go to the real hardware.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Models & Data
+
+<AccordionGroup>
+  <Accordion title="How do I use my own trained model with Cyberwave?">
+    Register your model checkpoint with Cyberwave first (via the dashboard or CLI), then load it in your SDK session:
+
+    ```python
+    model = cw.models.load("my-model-name")
+    ```
+
+    Once loaded, you can attach the model to a twin for inference, run it against a dataset for evaluation, or deploy it to edge hardware. The model name corresponds to the name you gave the checkpoint at registration time.
+
+    If you trained outside of Cyberwave (for example, in a standalone PyTorch loop), you can import your checkpoint via the dashboard under **Models → Import**.
+  </Accordion>
+
+  <Accordion title="What data formats does Cyberwave export?">
+    Cyberwave exports data in open formats with no proprietary lock-in:
+
+    | Format | Use case |
+    |---|---|
+    | **LeRobot** | Interoperable robot learning datasets compatible with HuggingFace's LeRobot library |
+    | **Parquet** | Columnar format for large-scale data processing with pandas, Spark, or DuckDB |
+    | **MP4** | Video episodes from camera twins for review, labeling, or sharing |
+
+    You own your data. Export it at any time from the dashboard or via the SDK, and use it with any tool in the broader ML ecosystem.
+  </Accordion>
+
+  <Accordion title="Is my data GDPR compliant?">
+    Yes. Cyberwave is built in the EU and designed with GDPR compliance from the ground up. Key data protection features include:
+
+    - **Anonymization tools** built into the data pipeline: blur, pixelate, and redact regions of interest in video and image data before it leaves your environment
+    - **Data residency controls** so you can choose where your data is stored
+    - **Right to erasure** — delete any dataset at any time from the dashboard or SDK (see below)
+
+    If you have specific compliance requirements or need a Data Processing Agreement, contact the Cyberwave team through the dashboard.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Billing & Account
+
+<AccordionGroup>
+  <Accordion title="Where do I manage my billing and subscription?">
+    All billing is managed through the Cyberwave dashboard. Go to **Account Settings → Billing** to view your current plan, update your payment method, download invoices, or upgrade to a higher tier. Changes take effect immediately.
+  </Accordion>
+
+  <Accordion title="Can I delete my data?">
+    Yes — you have full control over your data at all times. Delete individual datasets or entire collections from the **Datasets** section of the dashboard, or use the SDK:
+
+    ```python
+    cw.datasets.delete("my-dataset-name")
+    ```
+
+    Deletion is permanent and takes effect immediately. Cyberwave does not retain copies of deleted datasets after deletion is confirmed.
+  </Accordion>
+</AccordionGroup>

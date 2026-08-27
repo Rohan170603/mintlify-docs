@@ -1,0 +1,78 @@
+---
+title: "Collect and Manage Robot Training Data"
+sidebarTitle: "Collect Data"
+description: "Use Cyberwave's automatic recording to collect high-quality robot datasets for AI training. Slice episodes, export open formats, and stay GDPR-compliant."
+---
+
+Every digital twin in Cyberwave is a data source the moment you start recording. Sensor streams, camera feeds, joint states, and action logs are captured automatically — no storage buckets to configure, no schemas to maintain, no ETL pipelines to wire up. Whether you are running a single-arm lab prototype or a 24/7 production line, Cyberwave scales with you.
+
+## How Recording Works
+
+Cyberwave manages storage on your behalf. When you enable recording on a twin, all telemetry is streamed, compressed, and indexed in real time. You focus on running your robot; Cyberwave takes care of keeping the data safe and queryable.
+
+Key properties of the recording system:
+
+- **Zero-config storage** — no S3 buckets, no database schemas, no manual uploads
+- **Always-on indexing** — every run is searchable from the dashboard the moment it ends
+- **Production scale** — designed for continuous 24/7 recording across fleets
+
+## Manage Episodes
+
+Raw runs are long and noisy. The Cyberwave dashboard lets you slice any recording into named **episodes** — clean, labelled segments that map to individual tasks or attempts. Use episodes to filter out failed attempts, annotate success conditions, and build curated datasets ready for training.
+
+## Export Your Data
+
+Cyberwave stores data in open formats so you are never locked in:
+
+| Format | Use case |
+|---|---|
+| **LeRobot** | Drop-in compatibility with the LeRobot training framework |
+| **Parquet** | Tabular sensor data, joint states, and action logs |
+| **MP4** | Camera streams for visual inspection or VLA training |
+
+You can delete any dataset or episode at any time from the dashboard or the SDK.
+
+## GDPR Compliance and Anonymization
+
+Cyberwave includes built-in anonymization tools that run at recording time or as a post-processing step. Apply them to any detected class — including faces, license plates, and custom object categories — using blur, pixelate, or full redaction.
+
+<Note>
+  Anonymization runs server-side before data is persisted. The original frames are never stored once a redaction policy is applied.
+</Note>
+
+## Register an Existing Dataset
+
+If you already have recordings on disk, register them directly with the SDK. Cyberwave will index and manage them alongside data captured through digital twins.
+
+```python
+cw.datasets.add("./my-recordings")
+```
+
+Point `add()` at any local directory containing LeRobot, parquet, or MP4 files. Cyberwave detects the format automatically.
+
+## Kickstart with Human Demonstrations
+
+<Tip>
+  Use human controllers to generate your first high-quality demonstration episodes. Human teleoperation data tends to produce faster, more reliable model convergence than random exploration, especially for manipulation tasks.
+</Tip>
+
+Connect a gamepad or keyboard controller through the twin, record a set of demonstrations, then use those episodes as the seed dataset for fine-tuning. See [Build an AI Workflow](/guides/build-ai-workflow) for a full example.
+
+## What Comes Next
+
+Once your dataset is registered, it flows straight into the Cyberwave model catalog for training — no intermediate steps required.
+
+<CardGroup cols={2}>
+  <Card title="Train & Deploy Models" icon="brain" href="/guides/train-deploy-model">
+    Fine-tune a VLA or RL model on your collected episodes.
+  </Card>
+  <Card title="Models & Datasets Concepts" icon="book" href="/concepts/models-datasets">
+    Understand how Cyberwave structures datasets and model checkpoints.
+  </Card>
+  <Card title="Connect Hardware" icon="plug" href="/guides/connect-hardware">
+    Pair a physical robot to start collecting real-world data.
+  </Card>
+  <Card title="Build an AI Workflow" icon="diagram-project" href="/guides/build-ai-workflow">
+    Compose a full end-to-end automation pipeline.
+  </Card>
+</CardGroup>

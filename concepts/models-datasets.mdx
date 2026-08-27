@@ -1,0 +1,155 @@
+---
+title: "AI Models and Datasets in Cyberwave"
+sidebarTitle: "Models & Datasets"
+description: "Cyberwave includes 100+ catalog models for robotics AI and open-format dataset management — deploy a model or train your own with minimal setup."
+---
+
+Cyberwave makes attaching AI to a robot as straightforward as choosing a controller. A model catalog gives you 100+ ready-to-deploy checkpoints for common robotics tasks, and an open-format dataset system means you keep full ownership of the data your robots generate. You can go from raw recordings to a deployed model without leaving the platform — or export everything and take it elsewhere.
+
+## The Model Catalog
+
+Cyberwave ships with over 100 pre-trained models covering the most common perception and control tasks in robotics. Every catalog model is one identifier away from running on your twin.
+
+Model categories include:
+
+- **Vision** — object detection, depth estimation, optical flow
+- **Language** — command parsing, scene description, VQA
+- **Vision-Language-Action (VLA)** — end-to-end policies that map observations to robot actions
+- **Segmentation** — semantic, instance, and panoptic segmentation
+- **Pose estimation** — 6-DOF object pose, human pose, hand keypoints
+
+Drop any catalog model onto a twin using `cw.models.load()`:
+
+```python
+import cyberwave as cw
+
+model = cw.models.load("yolov8n")          # object detection from the catalog
+detections = model.run(cw.twin("spot/spot").camera.frame())
+```
+
+## Bring Your Own Model
+
+Register your own fine-tuned checkpoint the same way you load a catalog model. Cyberwave accepts standard checkpoint formats (PyTorch, ONNX, SafeTensors) and hosts them in your workspace.
+
+```python
+import cyberwave as cw
+
+model     = cw.models.load("yolov8n")       # from the catalog
+my_model  = cw.models.load("my-vla-v3")    # your own checkpoint
+```
+
+Once registered, your model appears alongside catalog models in the dashboard and can be used as an AI controller on any twin:
+
+```python
+robot = cw.twin("unitree/go2")
+robot.use_controller("my-vla-v3")
+```
+
+## Edge or Cloud Inference
+
+Every model — catalog or custom — runs on the same API regardless of where inference happens. Point a model at edge hardware co-located with your robot for low-latency perception, or route inference to Cyberwave's cloud for heavier planners that don't need sub-millisecond response times.
+
+```python
+import cyberwave as cw
+
+# Cloud inference (default)
+model = cw.models.load("my-vla-v3")
+
+# Edge inference
+model = cw.models.load("my-vla-v3", target="edge")
+```
+
+<Note>
+  Edge inference requires a Cyberwave Edge Agent running on your local compute. See the infrastructure docs for setup instructions.
+</Note>
+
+## Fine-Tuning on Your Own Data
+
+If a catalog model doesn't fit your task out of the box, fine-tune it on your own recordings. Cyberwave wraps the training loop so you don't need to manage a training cluster manually.
+
+<Steps>
+  <Step title="Collect recordings">
+    Drive your robot manually or run an automated policy. Cyberwave records every session automatically.
+  </Step>
+  <Step title="Register your dataset">
+    Point Cyberwave at your recordings folder or an existing LeRobot-format dataset.
+    ```python
+    cw.datasets.add("./my-recordings")
+    ```
+  </Step>
+  <Step title="Launch fine-tuning">
+    Select a base model and your dataset from the dashboard, configure training hyperparameters, and start the job.
+  </Step>
+  <Step title="Deploy the checkpoint">
+    When training completes, the new checkpoint appears in your model registry. Load it with `cw.models.load("my-model-name")` and attach it to any twin.
+  </Step>
+</Steps>
+
+## Managing Datasets
+
+### Registering a Dataset
+
+Register any folder of recordings or a pre-built LeRobot-format dataset with a single call:
+
+```python
+import cyberwave as cw
+
+cw.datasets.add("./my-recordings")
+```
+
+Cyberwave ingests the data, builds a preview, and makes it available in the dashboard for visualisation and training.
+
+### Open Formats
+
+Cyberwave stores datasets in standard, open formats. You own your data and can take it anywhere.
+
+| Format | Use case |
+|---|---|
+| LeRobot | Imitation learning and VLA training |
+| Parquet | Tabular telemetry and sensor logs |
+| MP4 | Video recordings from camera twins |
+
+No proprietary encoding, no re-upload required. Delete your data from the dashboard at any time and it is gone from Cyberwave's infrastructure.
+
+### The Register → Visualise → Train Pattern
+
+Every dataset in Cyberwave follows the same lifecycle:
+
+1. **Register** — add the data source with `cw.datasets.add()`
+2. **Visualise** — inspect episodes, filter by label, and verify data quality in the dashboard
+3. **Train** — kick off a fine-tuning job directly from the dataset view
+
+This pattern applies whether you start from raw recordings, an exported session, or a dataset you bring from outside Cyberwave.
+
+## Privacy and GDPR Compliance
+
+Cyberwave includes built-in anonymization tooling for datasets that contain identifiable information. Apply anonymization filters before training or exporting:
+
+- **Blur** — Gaussian blur over detected faces or license plates
+- **Pixelate** — block-level pixelation over any detected class
+- **Redact** — solid fill over regions you specify or that a detector flags
+
+```python
+import cyberwave as cw
+
+ds = cw.datasets.get("my-recordings")
+ds.anonymize(targets=["faces", "license_plates"], method="blur")
+```
+
+<Warning>
+  Anonymization is applied to exported copies of your dataset. The originals in your workspace are not modified unless you explicitly overwrite them. Review your jurisdiction's data retention requirements before deciding which copy to keep.
+</Warning>
+
+---
+
+<CardGroup cols={3}>
+  <Card title="SDK: Models" icon="brain" href="/sdk/models">
+    Full reference for `cw.models.load()`, inference options, and checkpoint registration.
+  </Card>
+  <Card title="SDK: Datasets" icon="database" href="/sdk/datasets">
+    Full reference for `cw.datasets.add()`, filtering, anonymization, and export.
+  </Card>
+  <Card title="Guide: Train & Deploy" icon="rocket" href="/guides/train-deploy-model">
+    End-to-end walkthrough: collect data, fine-tune a model, and deploy it to a robot.
+  </Card>
+</CardGroup>

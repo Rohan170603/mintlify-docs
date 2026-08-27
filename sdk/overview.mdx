@@ -1,0 +1,107 @@
+---
+title: "Cyberwave Python SDK Overview and Installation"
+sidebarTitle: "Overview"
+description: "The Cyberwave Python SDK lets you control robots, manage digital twins, load AI models, and handle datasets — all from a single pip-installable package."
+---
+
+The Cyberwave Python SDK is your single entry point for everything on the platform: connecting physical robots and sensors, creating and controlling digital twins, loading AI models, and managing training datasets. Whether you are running a simulation or commanding a live robot on the edge, the same Python API works across both.
+
+## Installation
+
+Install the SDK from PyPI using pip:
+
+```bash
+pip install cyberwave
+```
+
+The package requires Python 3.9 or later. Once installed, the `cyberwave` CLI is available in your terminal alongside the Python library.
+
+## CLI
+
+The `cyberwave` command-line interface lets you manage your workspace and pair physical robots without writing any Python.
+
+```bash
+# See all available commands and options
+cyberwave --help
+
+# Pair a physical robot or sensor with your Cyberwave account
+cyberwave pair
+```
+
+Run `cyberwave pair` when you are setting up a new physical device. It walks you through the pairing flow, assigns the robot a unique ID, and registers it under your workspace so you can immediately reference it with `cw.twin()`.
+
+## Initialization
+
+Import the `Cyberwave` class and create a client. The client reads your API key from the `CYBERWAVE_API_KEY` environment variable by default, so you do not need to hard-code credentials in your scripts.
+
+```python
+from cyberwave import Cyberwave
+
+# Recommended: reads CYBERWAVE_API_KEY from the environment
+cw = Cyberwave()
+
+# Alternative: pass the key directly (avoid committing this to source control)
+cw = Cyberwave(api_key="your-api-key-here")
+```
+
+<Note>
+  Store your API key in a `.env` file or your CI secret store rather than in source code. See [Authentication](/authentication) for token setup and rotation.
+</Note>
+
+## SDK Modules
+
+Once you have a `cw` client, everything on the platform is reachable through four top-level namespaces:
+
+<CardGroup cols={2}>
+  <Card title="cw.twin()" icon="robot" href="/sdk/twins">
+    Get or create a digital twin for any paired robot or sensor. Call robot-specific methods like `takeoff()`, `move_forward()`, or `set_joint()` directly on the returned twin object.
+  </Card>
+  <Card title="cw.affect()" icon="toggle-on" href="/sdk/twins">
+    Toggle between `"simulation"` and `"live"` mode. Simulation mode runs commands against a digital replica; live mode sends commands to the physical device.
+  </Card>
+  <Card title="cw.models" icon="brain" href="/sdk/models">
+    Load catalog models or your own checkpoints for edge and cloud inference. Access 100+ vision, VLA, segmentation, and pose models in a single call.
+  </Card>
+  <Card title="cw.datasets" icon="database" href="/sdk/datasets">
+    Register local datasets to make them available for training, visualization, and sharing. Supports LeRobot, Parquet, and MP4 formats.
+  </Card>
+</CardGroup>
+
+## Quick Start Example
+
+The snippet below shows the most common pattern: initialize a client, switch to simulation mode, spin up two twins, and issue commands — all in a few lines.
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+
+# Work against digital replicas first, then flip to "live"
+cw.affect("simulation")
+
+drone = cw.twin("dji/dji-mini-4-pro")
+drone.takeoff()
+
+arm = cw.twin("the-robot-studio/so101")
+arm.set_joint("1", 30)
+
+# When you are ready to run on real hardware
+cw.affect("live")
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Generate and manage your Cyberwave API tokens.
+  </Card>
+  <Card title="Digital Twins" icon="robot" href="/sdk/twins">
+    Full reference for `cw.twin()` and every twin method.
+  </Card>
+  <Card title="AI Models" icon="brain" href="/sdk/models">
+    Load catalog or custom models for robot inference.
+  </Card>
+  <Card title="Datasets" icon="database" href="/sdk/datasets">
+    Register and manage your robot training data.
+  </Card>
+</CardGroup>

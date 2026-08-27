@@ -1,0 +1,101 @@
+---
+title: "Build an End-to-End AI Workflow for Robots"
+sidebarTitle: "AI Workflow"
+description: "Combine Cyberwave's digital twins, controllers, and model catalog to build and run complete AI automation workflows for physical robots."
+---
+
+Cyberwave is designed for composing AI automations from reusable building blocks. Digital twins give you a consistent interface to any robot. Controllers let you swap between human input, pre-programmed logic, and learned AI policies. The model catalog gives you pre-trained perception and planning models that run on edge or cloud with the same API. Put these pieces together and you get a complete automation loop that records its own training data as it runs.
+
+## A Typical AI Workflow
+
+Most Cyberwave automations follow the same five-step pattern, regardless of the robot or task:
+
+<Steps>
+  <Step title="Connect your twin">
+    Instantiate a twin in simulation or live mode. Starting in simulation lets you iterate quickly without risk to hardware.
+  </Step>
+
+  <Step title="Load a perception model on the edge">
+    Deploy a lightweight detection or segmentation model to the edge device co-located with your robot. Edge inference keeps latency low for time-sensitive observation tasks.
+  </Step>
+
+  <Step title="Run a planning model in the cloud">
+    Load a higher-level policy or planner in the cloud. Planning models typically require more compute and are less latency-sensitive than perception, making cloud execution a natural fit.
+  </Step>
+
+  <Step title="Execute actions via your twin">
+    Send motor commands and action sequences through the twin. The same interface works for simulation and live hardware — `cw.affect()` is the only thing that changes.
+  </Step>
+
+  <Step title="Record data for future training">
+    Recording runs continuously in the background across every controller switch. Every interaction — human demonstrations, AI rollouts, and hybrid runs — is captured as labelled episode data you can feed straight back into training.
+  </Step>
+</Steps>
+
+## Complete Workflow Example
+
+The example below walks through the full lifecycle: start in simulation, load a perception model, test with a human controller, hand off to an AI policy, and then go live.
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+arm = cw.twin("the-robot-studio/so101")
+
+# Start in simulation for safety
+cw.affect("simulation")
+
+# Load perception model (runs on edge)
+perception = cw.models.load("yolov8n")
+
+# Test workflow with a human baseline first
+arm.use_controller("keyboard")
+
+# Hand control to your trained AI policy
+arm.use_controller("my-vla-policy")
+
+# Once satisfied with simulation results, go live
+cw.affect("live")
+```
+
+<Warning>
+  Always validate your policy in simulation before calling `cw.affect("live")`. Unexpected behaviour in simulation is a learning opportunity — unexpected behaviour on real hardware can damage equipment or cause injury.
+</Warning>
+
+## Low-Code vs. Full-Code
+
+You do not have to write Python to build Cyberwave workflows.
+
+| Option | When to use it |
+|---|---|
+| **Dashboard (low-code)** | Rapid prototyping, non-developer team members, visual inspection of data and models |
+| **Python SDK (full-code)** | Complex logic, CI/CD integration, programmatic control over training and deployment |
+
+Both options expose the same underlying capabilities. Start in the dashboard and graduate to the SDK as your workflows grow in complexity.
+
+## Edge + Cloud Split
+
+<Tip>
+  A common pattern is to run perception models on the edge (low latency, near the sensors) and planning models in the cloud (high compute, centrally managed). Because Cyberwave uses a single model API, you can move a model between edge and cloud from the dashboard without touching your application code.
+</Tip>
+
+## Recording Across Controller Switches
+
+Recording continues uninterrupted when you switch controllers mid-run. This makes it straightforward to generate mixed datasets: start with a human demonstrating the correct behaviour, hand off to the AI, and compare the two in the episode browser. Use the higher-quality segments to augment your training data for the next iteration.
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Connect Hardware" icon="plug" href="/guides/connect-hardware">
+    Pair a physical robot with its digital twin to go live.
+  </Card>
+  <Card title="Collect Data" icon="database" href="/guides/collect-data">
+    Record episodes and build datasets for AI training.
+  </Card>
+  <Card title="Train & Deploy Models" icon="brain" href="/guides/train-deploy-model">
+    Fine-tune and deploy AI models back to your robot.
+  </Card>
+  <Card title="Controllers Concepts" icon="book" href="/concepts/controllers">
+    Understand how Cyberwave controllers and policies work.
+  </Card>
+</CardGroup>

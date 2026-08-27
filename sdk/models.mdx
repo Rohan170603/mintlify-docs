@@ -1,0 +1,102 @@
+---
+title: "SDK Reference: AI Models — cw.models"
+sidebarTitle: "Models"
+description: "Reference for cw.models.load(). Access 100+ catalog models or load your own checkpoints for edge and cloud inference on any Cyberwave twin."
+---
+
+The `cw.models` namespace gives you access to every AI model available on the Cyberwave platform — from pre-trained catalog models covering vision, segmentation, pose estimation, and vision-language-action tasks, to your own fine-tuned checkpoints uploaded through the dashboard or CLI. The same `load()` call works regardless of whether the model runs on edge hardware or in the cloud.
+
+## cw.models.load()
+
+Load a model by name and return a model object ready for inference or assignment to a twin controller.
+
+```python
+model = cw.models.load(model_name)
+```
+
+<ParamField path="model_name" type="string" required>
+  The name of the model to load. For catalog models, use the slug shown on the [model catalog page](https://docs.cyberwave.com/use-cyberwave/ml-models) (e.g., `"yolov8n"`, `"sam2"`, `"pi0"`). For your own checkpoints, use the name you assigned when uploading — visible in your workspace under **Models**.
+</ParamField>
+
+## Loading a Catalog Model
+
+The Cyberwave catalog includes 100+ models across vision, VLA, segmentation, and pose categories. Load any of them by slug:
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+
+model = cw.models.load("yolov8n")
+```
+
+Once loaded, you can assign the model as a twin controller, run standalone inference, or use it as a building block in a larger automation pipeline.
+
+## Loading Your Own Checkpoint
+
+If you have trained or fine-tuned a model and uploaded the checkpoint to your Cyberwave workspace, load it by its workspace name:
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+
+my_model = cw.models.load("my-vla-v3")
+```
+
+Custom checkpoints follow the same interface as catalog models. You can assign them as twin controllers, chain them with catalog models, or export them at any time.
+
+## Assigning a Model as a Controller
+
+A loaded model can be passed directly to `twin.use_controller()` by name, or you can load it first and inspect its metadata before assigning it:
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+
+robot = cw.twin("unitree/go2")
+
+# Load the model to inspect it first
+policy = cw.models.load("my-vla-v3")
+print(policy.input_modalities)   # e.g. ["rgb", "depth", "proprioception"]
+
+# Assign it as the active controller
+robot.use_controller("my-vla-v3")
+```
+
+## Model Catalog
+
+The catalog is organized into four categories:
+
+| Category | Examples | Use cases |
+|---|---|---|
+| **Vision** | `yolov8n`, `yolov8x`, `rtdetr` | Object detection, obstacle avoidance |
+| **VLA** | `pi0`, `openvla`, `gr00t-n1` | End-to-end robot control from language |
+| **Segmentation** | `sam2`, `mask2former` | Scene understanding, grasping |
+| **Pose** | `rtmpose`, `sapiens-pose` | Human and robot pose estimation |
+
+Browse the full catalog — including input requirements, output format, and benchmark results — at [docs.cyberwave.com/use-cyberwave/ml-models](https://docs.cyberwave.com/use-cyberwave/ml-models).
+
+## Edge vs. Cloud Inference
+
+Cyberwave runs inference either on your edge device or in the cloud. The `cw.models.load()` call and the resulting model object are identical in both cases — the platform selects the execution target based on your workspace settings and the device capabilities reported by the twin.
+
+<Note>
+  You can override the inference target per-model in your workspace settings or by passing a `deploy_target` argument when creating a training run. See the [Train and Deploy guide](/guides/train-deploy-model) for details.
+</Note>
+
+<Tip>
+  Edge inference reduces round-trip latency significantly for time-sensitive control tasks. Cloud inference is better suited for heavy models during development when edge hardware is unavailable.
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Datasets" icon="database" href="/sdk/datasets">
+    Register training data to fine-tune catalog models or train your own checkpoints.
+  </Card>
+  <Card title="Train and Deploy a Model" icon="rocket" href="/guides/train-deploy-model">
+    End-to-end guide: collect data, train, evaluate, and deploy to a twin.
+  </Card>
+</CardGroup>

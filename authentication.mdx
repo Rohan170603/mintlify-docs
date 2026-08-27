@@ -1,0 +1,115 @@
+---
+title: "Authenticate with the Cyberwave SDK and API"
+sidebarTitle: "Authentication"
+description: "Get your Cyberwave API token, set the CYBERWAVE_API_KEY environment variable, and authenticate every SDK request securely."
+---
+
+Cyberwave uses API key authentication. Every call made through the Python SDK or the REST API must include a valid token, which the platform uses to identify your account and authorise access to your robots and environments. This page explains how to generate a token, configure it, and follow best practices to keep it safe.
+
+## Create an API Token
+
+Tokens are managed from the Cyberwave dashboard. Follow these steps to generate one:
+
+<Steps>
+  <Step title="Create an account">
+    If you do not have an account yet, sign up at [cyberwave.com/register](https://cyberwave.com/register). Existing users can skip this step and log in directly.
+  </Step>
+
+  <Step title="Open API Tokens">
+    Click your avatar in the top-right corner of the dashboard, then go to **Profile → API Tokens**.
+  </Step>
+
+  <Step title="Generate a new token">
+    Click **New Token**, give it a descriptive name (for example, `local-dev` or `ci-pipeline`), and confirm. The token is displayed **once** — copy it immediately and store it somewhere safe such as a password manager.
+  </Step>
+</Steps>
+
+<Warning>
+  Cyberwave will never show you a token's full value again after you close the creation dialog. If you lose a token, revoke it and create a new one.
+</Warning>
+
+## Set the Environment Variable
+
+The SDK looks for your token in the `CYBERWAVE_API_KEY` environment variable by default. Export it in your terminal before running any code:
+
+```bash
+export CYBERWAVE_API_KEY="cw_your_token_here"
+```
+
+With the variable set, initialising the client requires no extra arguments:
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()  # reads CYBERWAVE_API_KEY from environment automatically
+```
+
+<Tip>
+  Add the `export` line to your shell profile (e.g. `~/.zshrc` or `~/.bashrc`) so it is available in every new terminal session without you having to re-enter it.
+</Tip>
+
+## Pass the Token Directly in Code
+
+You can also supply the token as a constructor argument if you prefer to manage credentials programmatically:
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave(api_key="cw_your_token_here")
+```
+
+<Note>
+  Passing the token in code is convenient for quick experiments, but it is less secure than using an environment variable. Avoid hardcoding tokens in files you commit to source control — see [Security Best Practices](#security-best-practices) below.
+</Note>
+
+## Multi-Environment Authentication
+
+If your account has more than one environment (for example, separate environments for development and production), specify which environment a twin belongs to. Set the `CYBERWAVE_ENVIRONMENT_ID` environment variable to apply it globally:
+
+```bash
+export CYBERWAVE_ENVIRONMENT_ID="env_your_environment_id"
+```
+
+Or pass `environment_id` directly when creating a twin to override the default on a per-call basis:
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+arm = cw.twin("the-robot-studio/so101", environment_id="env_your_environment_id")
+```
+
+## What Happens When Authentication Fails
+
+If the token is missing, expired, or incorrect, the SDK raises an authentication error immediately:
+
+```
+cyberwave.exceptions.AuthenticationError: Invalid or missing API key.
+Check that CYBERWAVE_API_KEY is set correctly and the token has not been revoked.
+```
+
+When you see this error, verify the following:
+
+- `CYBERWAVE_API_KEY` is exported in the current shell session.
+- The token value matches exactly what was shown in the dashboard (no extra spaces or newline characters).
+- The token has not been revoked. If it has, generate a new one and update your environment.
+
+## Security Best Practices
+
+Protecting your API token is critical — anyone who holds it has full access to your robots and data.
+
+<Warning>
+  Never share your API token with anyone, and never post it in public places such as GitHub repositories, Slack channels, community forums, or support tickets. If a token is accidentally exposed, revoke it immediately from **Profile → API Tokens** and generate a replacement.
+</Warning>
+
+Follow these practices to keep your credentials safe:
+
+- **Use environment variables** rather than hardcoding tokens in source files.
+- **Use a secret manager** — tools like AWS Secrets Manager, HashiCorp Vault, or your CI/CD platform's built-in secrets store are purpose-built for this.
+- **Add `.env` files to `.gitignore`** if you load variables from a local file with a library like `python-dotenv`.
+- **Use scoped tokens** — give each integration or team member its own token so you can revoke access granularly without disrupting other users.
+- **Rotate tokens periodically** as part of your security hygiene, especially for long-running production deployments.
+
+<Tip>
+  For local development, consider using a tool like [direnv](https://direnv.net/) or `python-dotenv` to load `CYBERWAVE_API_KEY` from a `.env` file automatically. Just make sure `.env` is listed in your `.gitignore`.
+</Tip>

@@ -1,0 +1,102 @@
+---
+title: "Connect Physical Hardware to Cyberwave"
+sidebarTitle: "Connect Hardware"
+description: "Pair a real robot or sensor with your Cyberwave digital twin using the CLI. Works with Raspberry Pi, Nvidia Orin, and 90+ supported robots."
+---
+
+Cyberwave pairs your physical robot with a digital twin so every sensor reading, motor command, and camera feed flows through a single unified interface. The pairing process is a one-time setup — after that, you switch between simulation and live hardware with a single line of code.
+
+## Prerequisites
+
+Before you begin, make sure you have the following ready:
+
+- A Cyberwave account and a valid API key
+- Your robot powered on and reachable on your local network
+
+## Pair Your Hardware
+
+<Steps>
+  <Step title="SSH into your edge device (optional)">
+    If your robot runs on a Raspberry Pi or Nvidia Orin, open a terminal and connect to it first.
+
+    ```bash
+    ssh pi@cyberwave.local
+    ```
+
+    Skip this step if you are running the CLI directly on the machine connected to your robot.
+  </Step>
+
+  <Step title="Install the Cyberwave CLI">
+    Run the one-line installer to download and configure the CLI on your device.
+
+    ```bash
+    curl -fsSL https://cyberwave.com/install.sh | bash
+    ```
+
+    The installer adds the `cyberwave` command to your PATH automatically. Open a new shell session if the command is not found immediately.
+  </Step>
+
+  <Step title="Run the pairing wizard">
+    Start the interactive pairing flow. The CLI will discover available robots and walk you through selecting and authenticating yours.
+
+    ```bash
+    cyberwave pair
+    ```
+
+    Follow the prompts to choose the robot you want to pair. Cyberwave handles the rest — no manual configuration files or integration work required.
+  </Step>
+</Steps>
+
+<Note>
+  For a full reference of supported edge devices, connection protocols, and advanced network configurations, see the [hardware guide](https://docs.cyberwave.com/hardware).
+</Note>
+
+## Switch Between Simulation and Live Mode
+
+Once your hardware is paired, you control whether your code targets the real robot or its simulation with `cw.affect()`.
+
+<Tip>
+  Always validate your workflow in simulation before sending commands to physical hardware. Mistakes in simulation are free — mistakes on a real robot are not.
+</Tip>
+
+Test in simulation first:
+
+```python
+cw.affect("simulation")
+```
+
+When you are confident, flip to the live robot:
+
+```python
+cw.affect("live")
+```
+
+The rest of your code stays exactly the same. No branching, no conditional imports, no separate test harnesses.
+
+## Supported Hardware
+
+Cyberwave supports **90+ robots and sensors** out of the box, including:
+
+- **Drones** — DJI series
+- **Quadrupeds** — Unitree Go2
+- **Manipulators** — The Robot Studio SO101
+- **Cameras and sensors** — USB, MIPI, and IP camera streams
+
+For the complete list, visit [Supported Robots](/resources/supported-robots).
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Collect Training Data" icon="database" href="/guides/collect-data">
+    Start recording episodes from your paired robot for AI training.
+  </Card>
+  <Card title="Train & Deploy Models" icon="brain" href="/guides/train-deploy-model">
+    Fine-tune and deploy AI models back to your robot twin.
+  </Card>
+  <Card title="Build an AI Workflow" icon="diagram-project" href="/guides/build-ai-workflow">
+    Compose perception, planning, and action into a full automation pipeline.
+  </Card>
+  <Card title="Supported Robots" icon="robot" href="/resources/supported-robots">
+    Browse the full catalog of 90+ supported robots and sensors.
+  </Card>
+</CardGroup>

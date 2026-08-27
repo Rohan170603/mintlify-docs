@@ -1,0 +1,84 @@
+{
+  "projectType": "saas",
+  "projectName": "Cyberwave",
+  "projectDescription": "Cyberwave is a cloud-based robotics platform that lets developers connect physical robots and sensors, build AI-powered automations using digital twins, and deploy ML models to the edge or cloud — all through a unified Python SDK and CLI.",
+  "theme": "luma",
+  "primaryColor": "#1be49c",
+  "lightColor": "#0c8c5c",
+  "darkColor": "#0c0c0c",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "authentication"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/digital-twins",
+              "concepts/controllers",
+              "concepts/simulations",
+              "concepts/models-datasets"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/connect-hardware",
+              "guides/collect-data",
+              "guides/train-deploy-model",
+              "guides/build-ai-workflow"
+            ]
+          },
+          {
+            "group": "SDK Reference",
+            "pages": [
+              "sdk/overview",
+              "sdk/twins",
+              "sdk/controllers",
+              "sdk/models",
+              "sdk/datasets"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/supported-robots",
+              "resources/faq",
+              "resources/community"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Connect 90+ robots and sensors using a single unified SDK",
+    "Digital twin simulation in browser (Playground) and full-fidelity MuJoCo",
+    "Swap between human, code, and AI controllers at runtime",
+    "100+ pre-built AI model catalog (vision, VLA, pose, segmentation)",
+    "Automatic data collection and dataset management in open formats (LeRobot, parquet)",
+    "Edge and cloud model inference with no infrastructure management",
+    "GDPR-ready built-in anonymisation for recorded data",
+    "CLI for pairing and managing physical hardware"
+  ],
+  "publicApiSurface": [
+    "Cyberwave() — initialise SDK client",
+    "cw.twin(robot_id) — get or create a digital twin",
+    "cw.affect('simulation' | 'live') — toggle simulation vs live mode",
+    "twin.use_controller(controller_name) — assign a controller to a twin",
+    "cw.models.load(model_name) — load a model from catalog or your own checkpoint",
+    "cw.datasets.add(path) — register a dataset for training or visualisation",
+    "cyberwave pair — CLI command to pair physical hardware",
+    "cyberwave --help — CLI entry point",
+    "CYBERWAVE_API_KEY — environment variable for authentication",
+    "CYBERWAVE_ENVIRONMENT_ID — environment variable for multi-environment setups"
+  ]
+}

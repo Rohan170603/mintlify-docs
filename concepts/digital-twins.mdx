@@ -1,0 +1,116 @@
+---
+title: "What Are Digital Twins in Cyberwave?"
+sidebarTitle: "Digital Twins"
+description: "A Cyberwave digital twin is a programmable software representation of a robot or sensor that you control with Python, in simulation or on real hardware."
+---
+
+A digital twin is a live software mirror of a physical robot or sensor. In Cyberwave, every twin is a first-class Python object you can command, query, and observe — whether the underlying device is sitting on your desk or running inside a virtual environment. The twin abstracts away the hardware details so your code stays the same regardless of what is underneath.
+
+## What a Digital Twin Is
+
+A Cyberwave digital twin represents a robot or sensor in software. It mirrors the real device's state — joint angles, GPS position, battery level, camera feed — and accepts the same commands you would send to physical hardware. When you call a method on a twin, Cyberwave routes that command to whichever target is currently active: a simulator or the live device.
+
+Think of a twin as the single interface between your Python code and the physical (or virtual) world. You never talk directly to low-level firmware; you talk to the twin.
+
+## Creating a Twin
+
+Instantiate a twin by passing a `"vendor/model"` slug to `cw.twin()`. The string identifies the robot model from Cyberwave's hardware catalog.
+
+```python
+import cyberwave as cw
+
+drone = cw.twin("dji/dji-mini-4-pro")
+arm   = cw.twin("universal-robots/ur5e")
+dog   = cw.twin("unitree/go2")
+```
+
+`cw.twin()` returns a twin object. From that object you can read telemetry, send motion commands, attach a controller, or stream video — all through the same SDK interface.
+
+## Simulation vs. Live Hardware
+
+Twins work identically whether they are running in simulation or on real hardware. Toggle the active target with `cw.affect()`:
+
+```python
+cw.affect("simulation")   # all commands go to the virtual twin
+cw.affect("live")         # all commands go to the physical robot
+```
+
+Switch at any point in your script without changing any other line of code. This lets you prototype safely in simulation, then deploy to the real device with a single line change.
+
+<Note>
+  `cw.affect()` changes the target for **all** subsequent twin calls in the current session. If you need per-twin control, pass `environment_id` directly to `cw.twin()` instead.
+</Note>
+
+## Supported Robot Types
+
+Cyberwave's hardware catalog covers 90+ robots and sensors across four main categories:
+
+<CardGroup cols={2}>
+  <Card title="Drones" icon="drone">
+    Fixed-wing, multirotor, and hybrid UAVs. Includes DJI Mini, Skydio, and custom frames.
+  </Card>
+  <Card title="Robot Dogs" icon="dog">
+    Quadrupeds such as the Unitree Go2 and Boston Dynamics Spot.
+  </Card>
+  <Card title="Robotic Arms" icon="robot">
+    6-DOF and 7-DOF arms from Universal Robots, Franka, and others.
+  </Card>
+  <Card title="Cameras & Sensors" icon="camera">
+    Depth cameras, LiDAR units, and IMU-equipped sensor pods.
+  </Card>
+</CardGroup>
+
+If your hardware model is not in the catalog yet, contact the Cyberwave team to request it.
+
+## Twins as Data Sources
+
+Every twin records automatically. The moment you create a twin and begin a session, Cyberwave starts capturing:
+
+- **Telemetry** — position, velocity, joint states, battery, and any custom fields your hardware exposes
+- **Video** — camera feeds at configurable resolution and frame rate
+- **Sensor readings** — depth, LiDAR point clouds, IMU data, and more
+
+All recordings are stored against the twin and are available for replay, dataset export, and model training without any extra instrumentation on your part.
+
+<Tip>
+  Recordings captured during a human controller session are perfect raw material for imitation learning datasets. See [Models & Datasets](/concepts/models-datasets) for how to register them.
+</Tip>
+
+## Multi-Environment Support
+
+If you manage multiple Cyberwave environments (for example, staging and production), point a twin at a specific environment using the `CYBERWAVE_ENVIRONMENT_ID` environment variable or the `environment_id` keyword argument:
+
+```python
+import cyberwave as cw
+
+# via environment variable (recommended for CI/CD)
+# export CYBERWAVE_ENVIRONMENT_ID=env_staging_abc123
+
+# or pass it directly
+drone = cw.twin("dji/dji-mini-4-pro", environment_id="env_prod_xyz789")
+```
+
+The twin behaves identically in both cases — the only difference is which environment's infrastructure handles the session.
+
+## The Twin Dashboard Page
+
+Every twin has a dedicated page in the Cyberwave dashboard that shows:
+
+- **Live status** — whether the twin is connected, idle, or in an active session
+- **Active controller** — human, code, or AI model currently driving the twin
+- **Telemetry feed** — real-time graphs and readouts streamed from the device
+- **Recording history** — all sessions, exportable as datasets
+
+You can switch controllers, start and stop recordings, and inspect past sessions directly from this page without writing any code.
+
+<Warning>
+  Switching to `"live"` mode from the dashboard sends commands to your physical hardware. Make sure the robot is in a safe position and that the area around it is clear before switching.
+</Warning>
+
+---
+
+<CardGroup cols={1}>
+  <Card title="SDK: Twin Methods" icon="code" href="/sdk/twins">
+    Full reference for every method available on a twin object, including telemetry, streaming, and session control.
+  </Card>
+</CardGroup>

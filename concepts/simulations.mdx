@@ -1,0 +1,121 @@
+---
+title: "Simulate Robots Before Touching Real Hardware"
+sidebarTitle: "Simulations"
+description: "Cyberwave offers two built-in simulators — browser-based Playground and full-fidelity MuJoCo — so you can test code safely before deploying to real robots."
+---
+
+Before you send a command to a physical robot, you should know it works. Cyberwave drops your twin into a virtual environment so you can run, break, and iterate on your code without any risk to expensive hardware or the people around it. When you are satisfied, a single line change sends the same code to the real device.
+
+## Two Built-In Simulators
+
+Cyberwave ships two simulators with different fidelity and use-case profiles. Choose the one that matches what you need to validate.
+
+<CardGroup cols={2}>
+  <Card title="Playground" icon="browser">
+    Runs directly in your browser with lightweight physics. Great for sanity-checking code, demoing behavior, or verifying joint angles before going live.
+  </Card>
+  <Card title="MuJoCo" icon="flask">
+    Full-fidelity, contact-rich physics. Best for RL training, policy evaluation, and reproducible simulation sweeps.
+  </Card>
+</CardGroup>
+
+### Playground
+
+Playground is the fastest way to see your code in action. It runs entirely in the browser using a lightweight physics engine, so there is nothing to install and no GPU required. Open your Cyberwave environment, hit **Simulate**, and your twin appears in the 3D viewport within seconds.
+
+Use Playground when you want to:
+
+- Verify that a motion sequence reaches the expected end position
+- Confirm joint angle limits before running on real hardware
+- Demo robot behavior to a stakeholder without physical hardware nearby
+- Do a quick sanity check after a code change
+
+Playground prioritises speed and accessibility over physics accuracy. It is not the right tool for training or rigorous evaluation.
+
+### MuJoCo
+
+MuJoCo (Multi-Joint dynamics with Contact) is Cyberwave's full-fidelity simulator. It models contact forces, friction, and deformable objects with the accuracy required for reinforcement learning and policy evaluation. Every environment you build in Cyberwave exports to a MuJoCo XML scene with one click — no manual scene authoring needed.
+
+Use MuJoCo when you want to:
+
+- Train reinforcement learning policies with realistic contact dynamics
+- Evaluate a trained model across hundreds of randomised rollouts
+- Run reproducible simulation sweeps for research or benchmarking
+- Match sim-to-real transfer expectations before hardware deployment
+
+<Note>
+  MuJoCo simulations run on Cyberwave's cloud compute by default. You can also point them at your own GPU cluster by setting the `CYBERWAVE_COMPUTE_TARGET` environment variable. See the infrastructure docs for details.
+</Note>
+
+## Switching Between Simulation and Live Hardware
+
+### From the UI
+
+Open your Cyberwave environment in the dashboard and click **Simulate** in the top toolbar. Select **Playground** or **MuJoCo** from the panel that appears. Your twin loads into the chosen simulator immediately, and any code currently running reconnects automatically.
+
+To return to the physical robot, click **Go Live** in the same toolbar.
+
+### From Code
+
+Use `cw.affect()` to switch the active target for all twin commands in your session:
+
+```python
+import cyberwave as cw
+
+cw.affect("simulation")   # commands run against the virtual twin
+drone = cw.twin("dji/dji-mini-4-pro")
+
+# Test your flight path in simulation
+drone.takeoff()
+drone.move(direction="forward", distance=10.0)
+drone.land()
+
+cw.affect("live")         # flip back to the physical robot
+
+# Same commands, real hardware
+drone.takeoff()
+drone.move(direction="forward", distance=10.0)
+drone.land()
+```
+
+<Warning>
+  Always call `cw.affect("simulation")` at the top of any script you are still testing. A single forgotten line can send commands to a physical robot while you think you are in simulation.
+</Warning>
+
+## Same Code, Same SDK
+
+Simulation is not a separate mode with different APIs. Your Python code, SDK calls, and controller logic are identical whether the twin is virtual or physical. Cyberwave handles the routing transparently.
+
+This means:
+
+- Code you write in simulation is already the code you deploy to hardware
+- Telemetry, recordings, and datasets work the same way in both targets
+- AI controllers and ML models run against simulated twins exactly as they run against real ones
+
+## When to Use Each Simulator
+
+| Situation | Recommended simulator |
+|---|---|
+| First code run on a new robot model | Playground |
+| Validating joint angles and motion limits | Playground |
+| Demoing to a stakeholder | Playground |
+| Training an RL policy | MuJoCo |
+| Evaluating a trained model | MuJoCo |
+| Sim-to-real transfer research | MuJoCo |
+| Nightly CI tests with physics accuracy | MuJoCo |
+| Quick iteration during development | Playground |
+
+<Tip>
+  A good workflow is to develop and iterate in Playground for speed, then run a final validation sweep in MuJoCo before touching real hardware. Both simulators share the same environment definition, so switching costs you nothing.
+</Tip>
+
+---
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get your first twin running in simulation in under five minutes.
+  </Card>
+  <Card title="Build an AI Workflow" icon="brain" href="/guides/build-ai-workflow">
+    Train and evaluate a model end-to-end using MuJoCo simulation.
+  </Card>
+</CardGroup>

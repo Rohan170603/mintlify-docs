@@ -1,0 +1,148 @@
+---
+title: "SDK Reference: Digital Twins — cw.twin()"
+sidebarTitle: "Twins"
+description: "Full reference for cw.twin() and twin instance methods. Connect, control, and configure any supported robot or sensor from Python."
+---
+
+A digital twin is a live, programmable representation of a physical robot or sensor in the Cyberwave platform. When you call `cw.twin()`, you get back a twin object whose available methods match the capabilities of that specific device — a drone exposes `takeoff()`, a robotic arm exposes `set_joint()`, and so on. You can drive the same twin in simulation or switch it to live mode without changing any other code.
+
+## cw.twin()
+
+Retrieve an existing twin or create a new one for the specified robot. The twin is scoped to your workspace and optionally to a named environment.
+
+```python
+twin = cw.twin(robot_id, environment_id=None)
+```
+
+<ParamField path="robot_id" type="string" required>
+  The unique identifier for the robot or sensor in your workspace. Use the `vendor/model-slug` format for catalog robots (e.g., `"dji/dji-mini-4-pro"`, `"unitree/go2"`) or the custom ID you assigned during `cyberwave pair`.
+</ParamField>
+
+<ParamField path="environment_id" type="string">
+  The ID of an existing Cyberwave environment to attach this twin to. When omitted, the twin runs in your default workspace environment. Pass an explicit ID to isolate twins into separate simulation scenes or physical deployment zones.
+</ParamField>
+
+## cw.affect()
+
+Toggle whether commands issued to twins target digital replicas or physical hardware. Call `cw.affect()` before you create twins, or call it again at any point to switch all subsequent commands.
+
+```python
+cw.affect("simulation")   # safe testing against a digital replica
+cw.affect("live")         # commands reach the physical device
+```
+
+<ParamField path="mode" type='"simulation" | "live"' required>
+  `"simulation"` runs commands against a full-physics digital replica of the robot. `"live"` forwards every command to the paired physical device in real time. Switching modes does not reset twin state or disconnect telemetry.
+</ParamField>
+
+<Note>
+  Always validate new automation logic in `"simulation"` before switching to `"live"`. Physical commands execute immediately — there is no additional confirmation step.
+</Note>
+
+## Twin Methods
+
+The methods available on a twin depend on the robot type. The table below lists the common methods included in this reference, along with the device categories they apply to.
+
+| Method | Applies to | Description |
+|---|---|---|
+| `takeoff()` | Drones / aerial robots | Arm motors and lift to hover altitude |
+| `move_forward()` | Ground robots, quadrupeds | Drive forward at default speed |
+| `start_streaming()` | Cameras, sensor rigs | Begin live video or sensor data stream |
+| `set_joint(joint_id, angle)` | Robotic arms, humanoids | Move a named joint to a target angle |
+
+### takeoff()
+
+Arm the drone and ascend to the default hover altitude. Returns once the robot reports a stable hover.
+
+```python
+drone = cw.twin("dji/dji-mini-4-pro")
+drone.takeoff()
+```
+
+### move_forward()
+
+Command a ground robot or quadruped to move forward at its configured default speed.
+
+```python
+robot_dog = cw.twin("unitree/go2")
+robot_dog.move_forward()
+```
+
+### start_streaming()
+
+Start a live video or sensor data stream from the twin. The stream is accessible via the Cyberwave dashboard and can be consumed programmatically through the streaming API.
+
+```python
+camera = cw.twin("realsense/d435i")
+camera.start_streaming()
+```
+
+### set_joint()
+
+Move a specific joint on a robotic arm or humanoid to a target angle in degrees.
+
+```python
+arm = cw.twin("the-robot-studio/so101")
+arm.set_joint("1", 30)
+```
+
+<ParamField path="joint_id" type="string" required>
+  The identifier of the joint to actuate. Joint IDs are defined in the robot's URDF or model specification — check the robot's page in the Cyberwave dashboard or the [Supported Robots](/resources/supported-robots) reference.
+</ParamField>
+
+<ParamField path="angle" type="number" required>
+  Target angle in degrees. The valid range depends on the physical limits of the joint. The SDK clamps the value and logs a warning if it exceeds the joint's safe operating range.
+</ParamField>
+
+## Examples
+
+### Multiple Robots
+
+You can create as many twin objects as you need within a single session. Each twin is independent and can be commanded concurrently.
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+cw.affect("simulation")
+
+# Aerial robot
+drone = cw.twin("dji/dji-mini-4-pro")
+drone.takeoff()
+
+# Robotic arm
+arm = cw.twin("the-robot-studio/so101")
+arm.set_joint("1", 30)
+```
+
+### Multiple Environments
+
+Use `environment_id` to isolate twins into separate simulation scenes or deployment zones. This is useful for multi-site deployments or when you want to run parallel simulation experiments without interference.
+
+```python
+from cyberwave import Cyberwave
+
+cw = Cyberwave()
+
+# Two arms in separate environments
+arm_a = cw.twin("the-robot-studio/so101", environment_id="env-factory-floor-a")
+arm_b = cw.twin("the-robot-studio/so101", environment_id="env-factory-floor-b")
+
+arm_a.set_joint("1", 45)
+arm_b.set_joint("1", 90)
+```
+
+<Tip>
+  Available methods vary by robot type. If you call a method that the robot does not support, the SDK raises a `CyberwaveCapabilityError` with a message listing the methods available for that device.
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Controllers" icon="gamepad" href="/sdk/controllers">
+    Assign keyboard or AI model controllers to any twin at runtime.
+  </Card>
+  <Card title="Supported Robots" icon="list" href="/resources/supported-robots">
+    Browse every robot and sensor supported on the platform with their available twin methods.
+  </Card>
+</CardGroup>
